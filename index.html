@@ -1,0 +1,151 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub User Profile Viewer</title>
+  <style>
+    /* CSS Styles */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    #username {
+      padding: 8px;
+      width: 80%;
+      margin-bottom: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      padding: 10px 15px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    #userData {
+      margin-top: 20px;
+    }
+
+    #userData h2 {
+      color: #333;
+    }
+
+    #userData p {
+      color: #555;
+    }
+
+    #repo-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .repo-tag {
+      background-color: #ff6f61;
+      padding: 8px 12px;
+      color: white;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>API Sample</h1>
+    <input type="text" id="username" placeholder="Enter GitHub username">
+    <button onclick="fetchUserData()">Pull User Data</button>
+
+    <div id="userData" style="display: none;">
+      <h2 id="name"></h2>
+      <p id="user-handle"></p>
+      <img id="avatar" src="" alt="User Avatar" width="100">
+      <p>Followers: <span id="followers"></span> - Following: <span id="following"></span></p>
+      <p>Repos: <span id="repos"></span></p>
+
+      <div id="repo-list">
+        <h3>Repos List:</h3>
+        <div id="reposContainer"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // JavaScript Code
+    async function fetchUserData() {
+      const username = document.getElementById('username').value;
+      const userDataDiv = document.getElementById('userData');
+      const reposContainer = document.getElementById('reposContainer');
+
+      // Reset content
+      userDataDiv.style.display = 'none';
+      reposContainer.innerHTML = '';
+
+      if (username) {
+        try {
+          // Fetch user data
+          const userResponse = await fetch(`https://api.github.com/users/${username}`);
+          const userData = await userResponse.json();
+
+          if (userResponse.ok) {
+            document.getElementById('name').textContent = userData.name || 'No name available';
+            document.getElementById('user-handle').textContent = `@${userData.login}`;
+            document.getElementById('avatar').src = userData.avatar_url;
+            document.getElementById('followers').textContent = userData.followers;
+            document.getElementById('following').textContent = userData.following;
+            document.getElementById('repos').textContent = userData.public_repos;
+            userDataDiv.style.display = 'block';
+
+            // Fetch repos data
+            const reposResponse = await fetch(userData.repos_url);
+            const reposData = await reposResponse.json();
+
+            reposData.forEach(repo => {
+              const repoTag = document.createElement('div');
+              repoTag.className = 'repo-tag';
+              repoTag.textContent = repo.name;
+              reposContainer.appendChild(repoTag);
+            });
+          } else {
+            alert(`User not found: ${userData.message}`);
+          }
+        } catch (error) {
+          console.error('Error fetching data:', error);
+          alert('Error fetching data from GitHub API');
+        }
+      } else {
+        alert('Please enter a username');
+      }
+    }
+  </script>
+</body>
+</html>
